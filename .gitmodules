@@ -1,0 +1,9 @@
+[submodule "protobufs"]
+	path = protobufs
+	url = https://github.com/rd2l/protobuf-cpp
+[submodule "vendor/boost"]
+	path = vendor/boost
+	url = https://github.com/boostorg/boost.git
+[submodule "vendor/cryptopp"]
+	path = vendor/cryptopp
+	url = https://github.com/weidai11/cryptopp.git
