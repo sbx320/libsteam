@@ -16,17 +16,17 @@ steam::Dota::Dota(boost::asio::io_service& io)
     _gcTimer.SetCallback([this](auto) { this->Hello(); });
     GCMessage.connect([this](auto a, auto b, auto c, auto d)
     {
-        this->HandleMessage(a, b, c, d);
+        HandleMessage(a, b, c, d);
     });
     Disconnected.connect([this](auto)
     {
-        this->_gcTimer.Stop();
-        this->_gcConnected = false;
-        this->Lobby.reset();
+        _gcTimer.Stop();
+        _gcConnected = false;
+        Lobby.reset();
     });
 }
 
-steam::Dota::~Dota() {}
+steam::Dota::~Dota() = default;
 
 void steam::Dota::Start()
 {
@@ -49,7 +49,6 @@ void steam::Dota::Start()
 	WriteMessage(EMsg::ClientGamesPlayedWithDataBlob, msg);
 
     _gcConnected = false;
-
 	Hello();
 }
 
@@ -181,6 +180,7 @@ void steam::Dota::FlipLobbyTeams()
 
 void steam::Dota::HandleMessage(uint32_t emsg, const uint8_t * data, std::size_t length, uint64_t jobid)
 {
+	printf("gc: %s\n", proto::dota::EDOTAGCMsg_Name((proto::dota::EDOTAGCMsg)emsg).c_str());
 	switch (emsg)
 	{
 		using namespace proto::dota;

@@ -204,6 +204,7 @@ void steam::CMClient::WritePacket(const std::vector<uint8_t>& input)
     }
     else 
     {
+		// The initial handshake is not encrypted, simply copy the data
         std::copy(input.data(), input.data() + length, buffer + 8);  
     }
 
@@ -231,6 +232,7 @@ void steam::CMClient::Disconnect(const boost::system::error_code & ec)
 }
 
 void steam::CMClient::DecryptAndHandle(std::size_t length) {
+	// The initial handshake is not encrypted
 	using namespace CryptoPP;
 	if (_handshakeComplete) {
         // Decrypt IV
@@ -261,16 +263,19 @@ void steam::CMClient::HandlePacket(const uint8_t* data, std::size_t length)
 	auto raw_emsg = *reinterpret_cast<const std::uint32_t*>(data);
 	auto emsg = static_cast<EMsg>(raw_emsg & ~PROTO_MASK);
 
-	// Initial handshake uses MsgHdr
+	// Initial handshake uses MsgHdr and is not encrypted
 	if (emsg == EMsg::ChannelEncryptRequest || emsg == EMsg::ChannelEncryptResult) {
 		auto header = reinterpret_cast<const MsgHdr*>(data);
 		IncomingPacket(emsg, data + sizeof(MsgHdr), length - sizeof(MsgHdr), header->sourceJobID);
 	}
 	else if (raw_emsg & PROTO_MASK) 
     {
+		// Messages with the protobfu mask use a MsgHdrProtobuf
 		auto header = reinterpret_cast<const MsgHdrProtoBuf*>(data);
 		proto::steam::CMsgProtoBufHeader proto;
 		proto.ParseFromArray(data + sizeof(MsgHdrProtoBuf), header->headerLength);
+		// In a login message we receive our own session id and steamid
+		// The session id is needed for sending messages
 		if (!_sessionID && header->headerLength > 0) {
 			_sessionID = proto.client_sessionid();
 			steamID = proto.steamid();
@@ -284,6 +289,7 @@ void steam::CMClient::HandlePacket(const uint8_t* data, std::size_t length)
 	}
 	else 
     {
+		// Other non-protobuf messages use an extended header
         auto header = reinterpret_cast<const ExtendedClientMsgHdr*>(data);
         IncomingPacket(emsg, data + sizeof(ExtendedClientMsgHdr), length - sizeof(ExtendedClientMsgHdr), header->sourceJobID);
     }
@@ -291,6 +297,8 @@ void steam::CMClient::HandlePacket(const uint8_t* data, std::size_t length)
 
 
 void steam::CMClient::HandleMessage(EMsg emsg, const uint8_t* data, std::size_t length, uint64_t /*job_id*/) {
+	// We only handle a few messages here, since CMClient's purpose is to connect and log on to steam
+	// without doing much else. It also handles unpacking multi messages into single messages.
 	switch (emsg)
 	{
 	case EMsg::ChannelEncryptRequest:
@@ -308,6 +316,13 @@ void steam::CMClient::HandleMessage(EMsg emsg, const uint8_t* data, std::size_t 
 
 void steam::CMClient::HandleEncryptRequest(const uint8_t*, std::size_t)
 {
+	// Initial handshake:
+	// -> User connects to Steam
+	// <- Steam requests encryption
+	// -> User generates a random encryption key for the session
+	// -> User encrypts the session key with steam's public key
+	// -> User CRC32's the encrypted payload and sends it to steam
+	// <- Steam indicates handshake success
 	using namespace CryptoPP;
 
 	RSA::PublicKey key;
@@ -343,6 +358,9 @@ void steam::CMClient::HandleEncryptResponse(const uint8_t* data, std::size_t)
 
 void steam::CMClient::HandleMulti(const uint8_t * data, std::size_t length)
 {
+	// A multi packet is a message containing multiple other messages
+	// in an inflated memory payload. Simply unpack them and handle them 
+	// as if they were sent normally
 	proto::steam::CMsgMulti multi;
 	multi.ParseFromArray(data, length);
 
@@ -378,6 +396,7 @@ void steam::CMClient::SendHeartbeat(const boost::system::error_code&)
 
 void steam::CMClient::HandleLogOnResponse(const uint8_t * data, std::size_t length)
 {
+	// Handle logon responses, if logging in succeeded we need to send heartbeat messages
 	proto::steam::CMsgClientLogonResponse logon_resp;
 	logon_resp.ParseFromArray(data, length);
 	LoggedOn(logon_resp);
@@ -389,6 +408,7 @@ void steam::CMClient::HandleLogOnResponse(const uint8_t * data, std::size_t leng
 
 void steam::CMClient::HandleLoggedOff(const uint8_t * data, std::size_t length)
 {
+	// If we receive a logged off packet, call the event and stop sending cm heartbeats
 	proto::steam::CMsgClientLoggedOff logged_off;
 	logged_off.ParseFromArray(data, length);
 	LoggedOff(logged_off);

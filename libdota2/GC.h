@@ -1,15 +1,12 @@
 #pragma once
 #include "Client.h"
+#include <dota/gcsystemmsgs.pb.h>
+#include <dota/dota_gcmessages_msgid.pb.h>
 
-// Forward declacations to speed up compilation
-namespace proto
-{
-    namespace dota {
-        enum EGCBaseClientMsg : int;
-        enum EDOTAGCMsg : int;
-        enum EGCBaseMsg : int;
-    }
-}
+#include <dota/dota_gcmessages_common.pb.h>
+#include <dota/dota_gcmessages_client.pb.h>
+#include <dota/dota_gcmessages_client_chat.pb.h>
+#include <dota/dota_gcmessages_client_match_management.pb.h>
 
 namespace steam
 {

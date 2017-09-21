@@ -1,17 +1,6 @@
 #pragma once
 #include "GC.h"
-
-// Forward declacations to speed up compilation
-namespace proto
-{
-    namespace dota {
-        enum DOTAChatChannelType_t : int;
-        enum DOTA_CM_PICK : int;
-        class CSODOTALobby;
-        class CMsgDOTAProfileCard;
-        class CMsgPracticeLobbySetDetails;
-    }
-}
+#include <dota/dota_shared_enums.pb.h>
 
 namespace steam
 {

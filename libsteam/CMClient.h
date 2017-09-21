@@ -1,7 +1,6 @@
 #pragma once
 
 #include "steam_language/steam_language.h"
-#include "CallbackManager.h"
 #include "RecurringTimer.h"
 
 #include "SteamID.h"
@@ -9,19 +8,10 @@
 #include <cryptopp/osrng.h>
 #include <boost/asio.hpp>
 #include <ksignals.h>
-
-// A few forward declarations to speed up compiling
-namespace proto { 
-    namespace steam {
-        class CMsgClientLogonResponse;
-        class CMsgClientLoggedOff;
-    } 
-}
-namespace google {
-    namespace protobuf {
-        class Message;
-    }
-}
+#include <steam/steammessages_base.pb.h>
+#include <steam/steammessages_clientserver.pb.h>
+#include <steam/steammessages_clientserver_2.pb.h>
+#include <steam/steammessages_clientserver_login.pb.h>
 
 namespace steam 
 {
@@ -35,7 +25,6 @@ public:
 
 	void Disconnect();
 	bool IsConnected();
-
     ksignals::Event<void()> Connected;
     ksignals::Event<void(const boost::system::error_code&)> Disconnected;
     ksignals::Event<void(const proto::steam::CMsgClientLogonResponse&)> LoggedOn;
