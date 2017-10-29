@@ -92,6 +92,8 @@
 		'sources': [
 			'<!@pymod_do_main(glob-files vendor/cryptopp/*.cpp)',
 			'<!@pymod_do_main(glob-files vendor/cryptopp/*.h)',
+			'vendor/cryptopp/x64dll.asm',
+			'vendor/cryptopp/x64masm.asm',
 		],
 		'msvs_settings': {
           'VCCLCompilerTool': {
