@@ -1,9 +1,6 @@
 [submodule "protobufs"]
 	path = protobufs
 	url = https://github.com/rd2l/protobuf-cpp
-[submodule "vendor/boost"]
-	path = vendor/boost
-	url = https://gitlab.nanos.io/jc3mp/boost.git
 [submodule "vendor/networking-ts-impl"]
 	path = vendor/networking-ts-impl
 	url = https://github.com/chriskohlhoff/networking-ts-impl.git
