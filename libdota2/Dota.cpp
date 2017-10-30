@@ -8,9 +8,8 @@
 #include <steam/steammessages_clientserver_2.pb.h>
 #include <dota/gcsystemmsgs.pb.h>
 #include <dota/dota_gcmessages_msgid.pb.h>
-#include <boost/asio/steady_timer.hpp>
 
-steam::Dota::Dota(boost::asio::io_service& io)
+steam::Dota::Dota(net::io_context& io)
     : GC(io, 570), _gcTimer(io) 
 {
     _gcTimer.SetCallback([this](auto) { this->Hello(); });

@@ -13,7 +13,7 @@ namespace steam
 	class GC : public Client
 	{
 	public:
-		GC(boost::asio::io_service& io, uint32_t appId) : Client(io), _appId(appId)
+		GC(net::io_context& io, uint32_t appId) : Client(io), _appId(appId)
 		{
 			IncomingPacket.connect([this](EMsg emsg, const uint8_t* data, std::size_t length, uint64_t jobid)
 			{

@@ -12,14 +12,16 @@
 			'libsteam',
 			'vendor',
 			'protobufs',
+			'vendor/networking-ts-impl/include'
 		],
 		'direct_dependent_settings': {
-          'include_dirs': [
-			'libsteam',
-			'vendor',
-			'protobufs',
+      'include_dirs': [
+				'libsteam',
+				'vendor',
+				'protobufs',
+				'vendor/networking-ts-impl/include',
 		  ],
-        },
+    },
 		'sources': [
 			'<!@pymod_do_main(glob-files libsteam/**/*.cpp)',
 			'<!@pymod_do_main(glob-files libsteam/**/*.h)',

@@ -6,27 +6,27 @@
 #include "SteamID.h"
 
 #include <cryptopp/osrng.h>
-#include <boost/asio.hpp>
 #include <ksignals.h>
 #include <steam/steammessages_base.pb.h>
 #include <steam/steammessages_clientserver.pb.h>
 #include <steam/steammessages_clientserver_2.pb.h>
 #include <steam/steammessages_clientserver_login.pb.h>
+#include "NetTS.h"
 
 namespace steam 
 {
 class CMClient 
 {
 public:
-	CMClient(boost::asio::io_service& io);
+	CMClient(net::io_context& io);
 
-	void Connect(boost::asio::ip::tcp::resolver::iterator & endpoint);
+	void Connect(net::ip::tcp::resolver::results_type& endpoint);
     uint64_t steamID = 76561197960265728ULL;
 
 	void Disconnect();
 	bool IsConnected();
     ksignals::Event<void()> Connected;
-    ksignals::Event<void(const boost::system::error_code&)> Disconnected;
+    ksignals::Event<void(const std::error_code&)> Disconnected;
     ksignals::Event<void(const proto::steam::CMsgClientLogonResponse&)> LoggedOn;
 	ksignals::Event<void(const proto::steam::CMsgClientLoggedOff&)> LoggedOff;
 
@@ -40,14 +40,14 @@ protected:
     void ReadPacket(uint32_t remainingSize, uint32_t expectedSize);
 
     int32_t _sessionID = 0;
-    boost::asio::io_service& _io;
+    net::io_context& _io;
 
 private:
-	void Disconnect(const boost::system::error_code& ec);
+	void Disconnect(const std::error_code& ec);
 
 	void DecryptAndHandle(std::size_t length);
 	void HandleMessage(EMsg eMsg, const uint8_t* data, std::size_t length, std::uint64_t job_id);
-	void SendHeartbeat(const boost::system::error_code& ec);
+	void SendHeartbeat(const std::error_code& ec);
 
 	void HandleEncryptRequest(const uint8_t* data, std::size_t length);
 	void HandleEncryptResponse(const uint8_t* data, std::size_t length);
@@ -65,7 +65,7 @@ private:
     std::vector<uint8_t> _readBuffer;
     uint32_t _readOffset;
     
-	std::unique_ptr<boost::asio::ip::tcp::socket> _socket;
+	std::unique_ptr<net::ip::tcp::socket> _socket;
 	RecurringTimer _heartbeat;
 
 protected:

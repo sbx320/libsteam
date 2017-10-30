@@ -5,7 +5,7 @@ namespace steam {
 	class Client : public CMClient
 	{
 	public:
-        Client(boost::asio::io_service& io);
+        Client(net::io_context& io);
 
 		void LogOn(const std::string& username, const std::string& password);
 

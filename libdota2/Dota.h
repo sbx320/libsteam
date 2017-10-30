@@ -7,7 +7,7 @@ namespace steam
 	class Dota : public GC
 	{
 	public:
-        Dota(boost::asio::io_service& io);
+        Dota(net::io_context& io);
         ~Dota();
 
 		void Start();

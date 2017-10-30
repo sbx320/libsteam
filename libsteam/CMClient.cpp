@@ -24,10 +24,10 @@ static uint8_t steamPublicKey[] = {
 	0xE9, 0x63, 0xA2, 0xBB, 0x88, 0x19, 0x28, 0xE0, 0xE7, 0x14, 0xC0, 0x42, 0x89, 0x02, 0x01, 0x11,
 };
 
-steam::CMClient::CMClient(boost::asio::io_service& io) :
+steam::CMClient::CMClient(net::io_context& io) :
     _io(io),
     _handshakeComplete(false),
-    _socket(std::make_unique<boost::asio::ip::tcp::socket>(io)),
+    _socket(std::make_unique<net::ip::tcp::socket>(io)),
     _heartbeat(io)
 {
     _heartbeat.SetCallback([this](auto ec) { this->SendHeartbeat(ec); });
@@ -37,11 +37,10 @@ steam::CMClient::CMClient(boost::asio::io_service& io) :
 	});
 }
 
-void steam::CMClient::Connect(boost::asio::ip::tcp::resolver::iterator& endpoint)
+void steam::CMClient::Connect(net::ip::tcp::resolver::results_type& endpoint)
 {
-    boost::asio::async_connect(*_socket, endpoint,
-		[&](const boost::system::error_code& ec,
-            boost::asio::ip::tcp::resolver::iterator)
+    net::async_connect(*_socket, endpoint,
+		[&](const std::error_code& ec, auto)
 	{
 		if (ec)
 		{
@@ -56,8 +55,8 @@ void steam::CMClient::ReadPacketHeader()
 {
 	// Each Packet has a 8 byte header with VT01[packet length]
 	_readBuffer.resize(std::max<std::size_t>(8, _readBuffer.size()), '\0');
-    _socket->async_receive(boost::asio::buffer(this->_readBuffer.data(), 8),
-		[&](boost::system::error_code ec, std::size_t)
+    _socket->async_receive(net::buffer(this->_readBuffer.data(), 8),
+		[&](std::error_code ec, std::size_t)
 	{
 		if (ec)
 		{
@@ -74,8 +73,8 @@ void steam::CMClient::ReadPacketHeader()
 
 void steam::CMClient::ReadPacket(uint32_t remainingSize, uint32_t expectedSize)
 {
-    _socket->async_receive(boost::asio::buffer(_readBuffer.data() + _readOffset, expectedSize - _readOffset),
-        [this, remainingSize, expectedSize](boost::system::error_code ec, std::size_t length)
+    _socket->async_receive(net::buffer(_readBuffer.data() + _readOffset, expectedSize - _readOffset),
+        [this, remainingSize, expectedSize](std::error_code ec, std::size_t length)
     {
         if (ec)
         {
@@ -103,7 +102,7 @@ void steam::CMClient::ReadPacket(uint32_t remainingSize, uint32_t expectedSize)
 
 void steam::CMClient::Disconnect()
 {
-	Disconnect(boost::system::error_code());
+	Disconnect(std::error_code());
 }
 
 bool steam::CMClient::IsConnected()
@@ -209,8 +208,8 @@ void steam::CMClient::WritePacket(const std::vector<uint8_t>& input)
     }
 
     // Send it
-    _socket->async_send(boost::asio::buffer(buffer, headerLength + 8),
-        [buffer, this](boost::system::error_code ec, std::size_t)
+    _socket->async_send(net::buffer(buffer, headerLength + 8),
+        [buffer, this](std::error_code ec, std::size_t)
     {
         delete[] buffer;
         if (ec)
@@ -222,9 +221,9 @@ void steam::CMClient::WritePacket(const std::vector<uint8_t>& input)
 }
 
 
-void steam::CMClient::Disconnect(const boost::system::error_code & ec)
+void steam::CMClient::Disconnect(const std::error_code & ec)
 {
-	_socket = std::make_unique<boost::asio::ip::tcp::socket>(_io);
+	_socket = std::make_unique<net::ip::tcp::socket>(_io);
 	_handshakeComplete = false;
 	_readBuffer.clear();
 	_sessionID = 0;
@@ -385,7 +384,7 @@ void steam::CMClient::HandleMulti(const uint8_t * data, std::size_t length)
 	}
 }
 
-void steam::CMClient::SendHeartbeat(const boost::system::error_code&)
+void steam::CMClient::SendHeartbeat(const std::error_code&)
 {
 	// If we disconnected, stop sending heartbeats
 	if (!IsConnected())

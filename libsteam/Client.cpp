@@ -4,7 +4,7 @@
 #include <steam/steammessages_clientserver_login.pb.h>
 #include <steam/steammessages_clientserver_friends.pb.h>
 
-steam::Client::Client(boost::asio::io_service& io)
+steam::Client::Client(net::io_context& io)
 : CMClient(io) 
 {
 }
